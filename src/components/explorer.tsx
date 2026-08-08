@@ -154,7 +154,7 @@ export function Explorer({
     <div id="explorer" className="mx-auto max-w-7xl scroll-mt-24 px-4 lg:px-8">
       <div className="mb-8 max-w-2xl">
         <p className="text-xs font-semibold tracking-[0.2em] text-cyan uppercase">The explorer</p>
-        <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Problem Statements</h2>
+        <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">Problem Statements For Internal Hackathon</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Search across every official problem statement, narrow it down by category, theme,
           department or organisation, and shortlist the ones your team can genuinely build.
