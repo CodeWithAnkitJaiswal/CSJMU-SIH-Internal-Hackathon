@@ -1,6 +1,6 @@
 import { stats } from "@/lib/sih-data";
 
-const team = ["Ankit — Leader", "Akshay", "Anubhav", "Shiddharth", "Shivani", "Shivakshi"];
+const team = ["Ankit — Leader", "Akshay", "Anubhav", "Siddharth", "Shivani", "Shivakshi"];
 
 export function SiteFooter() {
   return (
