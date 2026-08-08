@@ -40,10 +40,10 @@ export function SiteNav() {
           </span>
           <span className="min-w-0">
             <span className="block truncate font-display text-sm font-bold tracking-tight">
-              TEAM RAGNAROK CODERS
+              CSJMU Kanpur · SIH 2026–27
             </span>
             <span className="block truncate text-[11px] text-muted-foreground">
-              CSJMU Kanpur · SIH 2026–27
+              TEAM RAGNAROK CODERS
             </span>
           </span>
         </Link>
