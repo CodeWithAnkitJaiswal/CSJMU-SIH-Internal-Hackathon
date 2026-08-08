@@ -90,3 +90,54 @@ export function ProblemCard({
     </article>
   );
 }
+
+export function ProblemListRow({
+  ps,
+  saved,
+  onToggle,
+}: {
+  ps: ProblemStatement;
+  saved: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <article className="glass glass-hover flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded bg-primary/10 border border-primary/20 px-1.5 py-0.5 font-mono text-[10px] text-primary">
+            {ps.id}
+          </span>
+          <span className={cn(
+            "rounded px-1.5 py-0.5 text-[10px] border",
+            ps.category === "Hardware" ? "border-amber/30 bg-amber/10 text-amber" : "border-violet/30 bg-violet/10 text-violet"
+          )}>
+            {ps.category}
+          </span>
+          <span className="text-xs text-muted-foreground">• {ps.organisation}</span>
+        </div>
+        <h3 className="text-sm font-semibold text-foreground truncate sm:text-base">
+          {ps.title}
+        </h3>
+        <p className="text-xs text-muted-foreground truncate">{ps.theme}</p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Link
+          to="/problem/$psId"
+          params={{ psId: ps.id }}
+          className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/20"
+        >
+          Details
+        </Link>
+        <button
+          type="button"
+          onClick={() => onToggle(ps.id)}
+          aria-pressed={saved}
+          className="rounded-lg border border-border p-1.5 text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+        >
+          {saved ? <BookmarkCheck className="h-4 w-4 text-primary" /> : <Bookmark className="h-4 w-4" />}
+        </button>
+      </div>
+    </article>
+  );
+}
+

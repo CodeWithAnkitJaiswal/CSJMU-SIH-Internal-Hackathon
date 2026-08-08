@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, X, Loader2, LayoutGrid, List } from "lucide-react";
 import {
   activeFilterCount,
   categories,
@@ -11,7 +11,7 @@ import {
   type Filters,
 } from "@/lib/sih-data";
 import { useShortlist } from "@/hooks/use-shortlist";
-import { ProblemCard } from "@/components/problem-card";
+import { ProblemCard, ProblemListRow } from "@/components/problem-card";
 import { cn } from "@/lib/utils";
 
 type Facet = { value: string; count: number };
@@ -88,7 +88,7 @@ function FacetGroup({
   );
 }
 
-const PAGE = 24;
+const PAGE = 20;
 
 export function Explorer({
   filters,
@@ -101,6 +101,7 @@ export function Explorer({
   const [visible, setVisible] = useState(PAGE);
   const [panelOpen, setPanelOpen] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const results = useMemo(() => filterProblems(filters), [filters]);
   const active = activeFilterCount(filters);
@@ -197,7 +198,7 @@ export function Explorer({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="glass hidden h-fit rounded-2xl p-5 lg:sticky lg:top-40 lg:block">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-sm font-bold">Filters</h3>
@@ -214,26 +215,55 @@ export function Explorer({
           <div className="mt-2 max-h-[65vh] overflow-y-auto pr-1">{panel}</div>
         </aside>
 
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              Showing{" "}
-              <span className="font-semibold text-foreground">
-                {Math.min(visible, results.length)}
-              </span>{" "}
-              of <span className="font-semibold text-foreground">{results.length}</span> Problem
-              Statements
-              {searching ? (
-                <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-primary" />
-              ) : null}
-            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {Math.min(visible, results.length)}
+                </span>{" "}
+                of <span className="font-semibold text-foreground">{results.length}</span> Problem
+                Statements
+                {searching ? (
+                  <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-primary" />
+                ) : null}
+              </p>
+
+              <div className="flex items-center gap-1 rounded-xl border border-border/80 bg-secondary/20 p-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition",
+                    viewMode === "grid"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" /> Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition",
+                    viewMode === "list"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <List className="h-3.5 w-3.5" /> List
+                </button>
+              </div>
+            </div>
             {active || filters.query ? (
               <button
                 type="button"
                 onClick={() => setFilters(emptyFilters)}
                 className="rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary/50"
               >
-                Clear All Filters
+                Clear Filters
               </button>
             ) : null}
           </div>
@@ -254,12 +284,19 @@ export function Explorer({
             </div>
           ) : (
             <>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <div className={cn(
+                "mt-6 gap-5",
+                viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-3"
+              )}>
                 {results.slice(0, visible).map((ps) =>
                   hydrated ? (
-                    <ProblemCard key={ps.id} ps={ps} saved={has(ps.id)} onToggle={toggle} />
+                    viewMode === "grid" ? (
+                      <ProblemCard key={ps.id} ps={ps} saved={has(ps.id)} onToggle={toggle} />
+                    ) : (
+                      <ProblemListRow key={ps.id} ps={ps} saved={has(ps.id)} onToggle={toggle} />
+                    )
                   ) : (
-                    <div key={ps.id} className="glass h-64 animate-pulse rounded-2xl" />
+                    <div key={ps.id} className={cn("glass animate-pulse rounded-2xl", viewMode === "grid" ? "h-64" : "h-20")} />
                   ),
                 )}
               </div>
