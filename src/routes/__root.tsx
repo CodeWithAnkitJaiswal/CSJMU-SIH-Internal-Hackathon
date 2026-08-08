@@ -77,15 +77,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SIH 2026–27 Problem Statement Explorer — CSJMU" },
+
+      { title: "SIH 2026-27 Problem Statement Explorer — CSJMU" },
+
       {
         name: "description",
-        content:
-          "Explore, search and shortlist Smart India Hackathon 2026–27 problem statements for the CSJM University internal hackathon.",
+        content: "Explore, search and shortlist Smart India Hackathon 2026-27 problem statements.",
       },
-      { name: "author", content: "Team Ragnarok Coders" },
+
+      // Open Graph
+      { property: "og:title", content: "SIH 2026-27 Problem Statement Explorer — CSJMU" },
+      {
+        property: "og:description",
+        content: "Explore, search and shortlist official SIH problem statements.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+
+      // 👇 Replace with your own image
+      {
+        property: "og:image",
+        content: "https://csjmu-sih-internal-hackathon.vercel.app/bg-share.jpeg",
+      },
+
+      {
+        property: "og:url",
+        content: "https://csjmu-sih-internal-hackathon.vercel.app",
+      },
+
+      // Twitter
+      {
+        name: "twitter:image",
+        content: "https://csjmu-sih-internal-hackathon.vercel.app/bg-share.jpeg",
+      },
     ],
     links: [
       {
@@ -98,7 +121,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
 
