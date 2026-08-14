@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Loader2, LayoutGrid, List } from "lucide-react";
+import {
+  Search,
+  SlidersHorizontal,
+  X,
+  Loader2,
+  LayoutGrid,
+  List,
+  FileDown,
+  RotateCcw,
+  History,
+  ArrowRight,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   activeFilterCount,
   categories,
@@ -12,6 +24,9 @@ import {
 } from "@/lib/sih-data";
 import { useShortlist } from "@/hooks/use-shortlist";
 import { ProblemCard, ProblemListRow } from "@/components/problem-card";
+import { useVisited } from "@/hooks/use-visited";
+import { readExplorerState, writeExplorerState } from "@/lib/explorer-state";
+import { exportProblemsToPdf } from "@/lib/export-pdf";
 import { cn } from "@/lib/utils";
 
 type Facet = { value: string; count: number };
@@ -98,15 +113,39 @@ export function Explorer({
   setFilters: (f: Filters) => void;
 }) {
   const { toggle, has, hydrated } = useShortlist();
+  const { last, entries } = useVisited();
   const [visible, setVisible] = useState(PAGE);
   const [panelOpen, setPanelOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [exporting, setExporting] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   const results = useMemo(() => filterProblems(filters), [filters]);
   const active = activeFilterCount(filters);
 
-  useEffect(() => setVisible(PAGE), [filters]);
+  // Restore how far the user had scrolled through the list and their view mode.
+  useEffect(() => {
+    const s = readExplorerState();
+    setVisible(s.visible);
+    setViewMode(s.viewMode);
+    setRestored(true);
+  }, []);
+
+  // Keep the result order in storage so a PS page can offer next / previous.
+  useEffect(() => {
+    writeExplorerState({ order: results.map((p) => p.id) });
+  }, [results]);
+
+  useEffect(() => {
+    if (!restored) return;
+    writeExplorerState({ visible, viewMode });
+  }, [visible, viewMode, restored]);
+
+  useEffect(() => {
+    if (!restored) return;
+    setVisible(PAGE);
+  }, [filters, restored]);
   useEffect(() => {
     if (!filters.query) return;
     setSearching(true);
@@ -198,6 +237,34 @@ export function Explorer({
         </div>
       </div>
 
+      {last ? (
+        <div className="glass mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
+          <p className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <History className="h-3.5 w-3.5 shrink-0 text-cyan" />
+            <span className="truncate">
+              You were last reading{" "}
+              <span className="font-mono text-primary">{last.id}</span>
+              {entries.length > 1 ? ` · ${entries.length} visited` : ""}
+            </span>
+          </p>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/problem/$psId"
+              params={{ psId: last.id }}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/25"
+            >
+              Resume <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/visited"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              All visited
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="glass hidden h-fit rounded-2xl p-5 lg:sticky lg:top-40 lg:block">
           <div className="flex items-center justify-between">
@@ -257,15 +324,38 @@ export function Explorer({
                 </button>
               </div>
             </div>
-            {active || filters.query ? (
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setFilters(emptyFilters)}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs hover:border-primary/50"
+                disabled={exporting || results.length === 0}
+                onClick={async () => {
+                  setExporting(true);
+                  try {
+                    await exportProblemsToPdf(results, filters);
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-cyan/40 bg-cyan/10 px-3.5 py-2 text-xs font-semibold text-cyan transition hover:bg-cyan/20 disabled:opacity-50"
               >
-                Clear Filters
+                {exporting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5" />
+                )}
+                Export {results.length} as PDF
               </button>
-            ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters(emptyFilters);
+                  setVisible(PAGE);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-border px-3.5 py-2 text-xs font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Reset filters
+              </button>
+            </div>
           </div>
 
           {results.length === 0 ? (

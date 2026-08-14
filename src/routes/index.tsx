@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -16,6 +16,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Explorer } from "@/components/explorer";
 import { CountUp, Reveal } from "@/components/motion";
 import { REGISTER_URL, SIH_VIDEO_URL } from "@/lib/links";
+import { readExplorerState, writeExplorerState, EXPLORER_EVENT } from "@/lib/explorer-state";
 import {
   categories,
   departments,
@@ -71,7 +72,48 @@ const steps = [
 ];
 
 function Index() {
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [filters, setFiltersState] = useState<Filters>(emptyFilters);
+  const [restored, setRestored] = useState(false);
+
+  // Restore the last session's filters (and scroll position) on return.
+  useEffect(() => {
+    const state = readExplorerState();
+    setFiltersState(state.filters);
+    setRestored(true);
+    if (state.scrollY > 0) {
+      requestAnimationFrame(() => window.scrollTo({ top: state.scrollY }));
+    }
+    const sync = () =>
+      setFiltersState((prev) => {
+        const next = readExplorerState().filters;
+        return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+      });
+    window.addEventListener(EXPLORER_EVENT, sync);
+    return () => window.removeEventListener(EXPLORER_EVENT, sync);
+  }, []);
+
+  // Remember scroll position so returning from a PS lands in the same place.
+  useEffect(() => {
+    if (!restored) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        writeExplorerState({ scrollY: window.scrollY });
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [restored]);
+
+  const setFilters = (next: Filters) => {
+    setFiltersState(next);
+    writeExplorerState({ filters: next });
+  };
 
   const jump = (next: Filters) => {
     setFilters(next);

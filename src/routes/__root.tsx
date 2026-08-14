@@ -93,7 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
 
-      // 👇 Replace with your own image
       {
         property: "og:image",
         content: "https://csjmu-sih-internal-hackathon.vercel.app/bg-share.jpeg",

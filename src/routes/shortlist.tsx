@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Star, Trash2 } from "lucide-react";
+import { FileDown, Star, Trash2 } from "lucide-react";
 import { useShortlist } from "@/hooks/use-shortlist";
-import { problemStatements } from "@/lib/sih-data";
+import { emptyFilters, problemStatements } from "@/lib/sih-data";
+import { exportProblemsToPdf } from "@/lib/export-pdf";
 import { ProblemCard } from "@/components/problem-card";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -36,7 +37,7 @@ function ShortlistPage() {
       <SiteNav />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] grid-bg" />
       <main className="relative mx-auto max-w-7xl px-4 pt-12 lg:px-8">
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+        <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <p className="text-xs font-semibold tracking-[0.2em] text-cyan uppercase">
               Saved locally in your browser
@@ -49,6 +50,19 @@ function ShortlistPage() {
             </p>
           </div>
           {saved.length ? (
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                exportProblemsToPdf(saved, emptyFilters, {
+                  heading: "My SIH Shortlist",
+                  fileName: `sih-shortlist-${saved.length}.pdf`,
+                })
+              }
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-cyan/40 bg-cyan/10 px-4 py-2 text-sm font-semibold text-cyan transition hover:bg-cyan/20"
+            >
+              <FileDown className="h-4 w-4" /> Export PDF
+            </button>
             <button
               type="button"
               onClick={clear}
@@ -56,6 +70,7 @@ function ShortlistPage() {
             >
               <Trash2 className="h-4 w-4" /> Clear shortlist
             </button>
+            </div>
           ) : null}
         </header>
 

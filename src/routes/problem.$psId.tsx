@@ -1,9 +1,27 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Building2, Layers, Star, Tag, Landmark, Lightbulb } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Layers,
+  Star,
+  Tag,
+  Landmark,
+  Lightbulb,
+  Sparkles,
+  Bot,
+  FileDown,
+} from "lucide-react";
 import { difficultyOf, getProblemById, problemStatements } from "@/lib/sih-data";
 import { useShortlist } from "@/hooks/use-shortlist";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { recordVisit } from "@/hooks/use-visited";
+import { readExplorerState } from "@/lib/explorer-state";
+import { chatgptUrl, geminiUrl } from "@/lib/ai-prompt";
+import { exportProblemsToPdf } from "@/lib/export-pdf";
+import { emptyFilters } from "@/lib/sih-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/problem/$psId")({
@@ -67,6 +85,61 @@ function ProblemDetail() {
   const { ps } = Route.useLoaderData();
   const { has, toggle, hydrated } = useShortlist();
   const saved = hydrated && has(ps.id);
+
+  // Track the visit so the explorer can offer "resume".
+  useEffect(() => {
+    recordVisit(ps.id);
+  }, [ps.id]);
+
+  // Walk the exact list the user was browsing (filters included).
+  const siblings = useMemo(() => {
+    const order = readExplorerState().order;
+    const list = order.length ? order : problemStatements.map((p) => p.id);
+    const i = list.indexOf(ps.id);
+    if (i === -1) return { prev: null, next: null, index: -1, total: list.length };
+    return {
+      prev: i > 0 ? list[i - 1] : null,
+      next: i < list.length - 1 ? list[i + 1] : null,
+      index: i,
+      total: list.length,
+    };
+  }, [ps.id]);
+
+  const pager = (
+    <nav className="flex flex-wrap items-center justify-between gap-3">
+      {siblings.prev ? (
+        <Link
+          to="/problem/$psId"
+          params={{ psId: siblings.prev }}
+          className="glass glass-hover inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium"
+        >
+          <ArrowLeft className="h-4 w-4 text-primary" /> Previous
+        </Link>
+      ) : (
+        <span className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-4 py-2.5 text-sm text-muted-foreground/60">
+          <ArrowLeft className="h-4 w-4" /> Previous
+        </span>
+      )}
+      {siblings.index >= 0 ? (
+        <span className="text-xs text-muted-foreground">
+          {siblings.index + 1} of {siblings.total} in your current list
+        </span>
+      ) : null}
+      {siblings.next ? (
+        <Link
+          to="/problem/$psId"
+          params={{ psId: siblings.next }}
+          className="glass glass-hover inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium"
+        >
+          Next <ArrowRight className="h-4 w-4 text-primary" />
+        </Link>
+      ) : (
+        <span className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-4 py-2.5 text-sm text-muted-foreground/60">
+          Next <ArrowRight className="h-4 w-4" />
+        </span>
+      )}
+    </nav>
+  );
   const related = problemStatements
     .filter((p) => p.id !== ps.id && (p.theme === ps.theme || p.organisation === ps.organisation))
     .slice(0, 3);
@@ -83,6 +156,8 @@ function ProblemDetail() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to Problem Statements
         </Link>
+
+        <div className="mt-5">{pager}</div>
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <span className="rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-xs text-primary">
@@ -118,6 +193,34 @@ function ProblemDetail() {
           >
             <Star className={cn("h-4 w-4", saved && "fill-current")} />
             {saved ? "Shortlisted" : "Add to Shortlist"}
+          </button>
+          <a
+            href={chatgptUrl(ps)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-cyan/40 bg-cyan/10 px-5 py-2.5 text-sm font-semibold text-cyan transition hover:bg-cyan/20"
+          >
+            <Bot className="h-4 w-4" /> Open in ChatGPT
+          </a>
+          <a
+            href={geminiUrl(ps)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-violet/40 bg-violet/10 px-5 py-2.5 text-sm font-semibold text-violet transition hover:bg-violet/20"
+          >
+            <Sparkles className="h-4 w-4" /> Open in Gemini
+          </a>
+          <button
+            type="button"
+            onClick={() =>
+              exportProblemsToPdf([ps], emptyFilters, {
+                heading: `${ps.id} — Problem Statement`,
+                fileName: `${ps.id}.pdf`,
+              })
+            }
+            className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-medium transition hover:border-primary/50"
+          >
+            <FileDown className="h-4 w-4" /> Export PDF
           </button>
           <Link
             to="/shortlist"
@@ -208,6 +311,7 @@ function ProblemDetail() {
             </div>
           </section>
         ) : null}
+        <div className="mt-10 mb-4">{pager}</div>
       </main>
       <SiteFooter />
     </div>

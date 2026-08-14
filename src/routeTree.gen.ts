@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShortlistRouteImport } from './routes/shortlist'
+import { Route as VisitedRouteImport } from './routes/visited'
 import { Route as ProblemPsIdRouteImport } from './routes/problem.$psId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ShortlistRoute = ShortlistRouteImport.update({
   path: '/shortlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VisitedRoute = VisitedRouteImport.update({
+  id: '/visited',
+  path: '/visited',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProblemPsIdRoute = ProblemPsIdRouteImport.update({
   id: '/problem/$psId',
   path: '/problem/$psId',
@@ -32,30 +38,34 @@ const ProblemPsIdRoute = ProblemPsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/shortlist': typeof ShortlistRoute
+  '/visited': typeof VisitedRoute
   '/problem/$psId': typeof ProblemPsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/shortlist': typeof ShortlistRoute
+  '/visited': typeof VisitedRoute
   '/problem/$psId': typeof ProblemPsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/shortlist': typeof ShortlistRoute
+  '/visited': typeof VisitedRoute
   '/problem/$psId': typeof ProblemPsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/shortlist' | '/problem/$psId'
+  fullPaths: '/' | '/shortlist' | '/visited' | '/problem/$psId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/shortlist' | '/problem/$psId'
-  id: '__root__' | '/' | '/shortlist' | '/problem/$psId'
+  to: '/' | '/shortlist' | '/visited' | '/problem/$psId'
+  id: '__root__' | '/' | '/shortlist' | '/visited' | '/problem/$psId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ShortlistRoute: typeof ShortlistRoute
+  VisitedRoute: typeof VisitedRoute
   ProblemPsIdRoute: typeof ProblemPsIdRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShortlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/visited': {
+      id: '/visited'
+      path: '/visited'
+      fullPath: '/visited'
+      preLoaderRoute: typeof VisitedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/problem/$psId': {
       id: '/problem/$psId'
       path: '/problem/$psId'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ShortlistRoute: ShortlistRoute,
+  VisitedRoute: VisitedRoute,
   ProblemPsIdRoute: ProblemPsIdRoute,
 }
 export const routeTree = rootRouteImport

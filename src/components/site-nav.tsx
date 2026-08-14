@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, Star, X } from "lucide-react";
 import { useShortlist } from "@/hooks/use-shortlist";
+import { GlobalSearch } from "@/components/global-search";
 import { REGISTER_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ const links = [
   { label: "Home", to: "/", hash: "" },
   { label: "Problem Statements", to: "/", hash: "explorer" },
   { label: "Categories", to: "/", hash: "categories" },
+  { label: "Visited", to: "/visited", hash: "" },
   { label: "SIH Guide", to: "/", hash: "guide" },
 ];
 
@@ -33,7 +35,7 @@ export function SiteNav() {
         scrolled ? "glass border-b border-border/70" : "border-b border-transparent",
       )}
     >
-      <nav className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 lg:px-8">
+      <nav className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
         <Link to="/" className="flex min-w-0 items-center gap-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-primary/40 bg-primary/10 font-display text-sm font-bold text-primary">
             RC
@@ -47,6 +49,8 @@ export function SiteNav() {
             </span>
           </span>
         </Link>
+
+        <GlobalSearch className="hidden min-w-0 lg:block" />
 
         <div className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (
@@ -91,7 +95,8 @@ export function SiteNav() {
 
       {open ? (
         <div className="glass border-t border-border/70 px-4 pb-4 lg:hidden">
-          <div className="flex flex-col gap-1 pt-2">
+          <div className="flex flex-col gap-1 pt-3">
+            <GlobalSearch className="mb-2" />
             {links.map((l) => (
               <Link
                 key={l.label}
